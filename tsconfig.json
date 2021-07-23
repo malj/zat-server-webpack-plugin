@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "es2019",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "strict": true,
+        "outDir": "./dist",
+        "declaration": true
+    },
+    "include": ["zat-server-webpack-plugin.ts"]
+}

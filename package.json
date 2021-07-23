@@ -1,0 +1,46 @@
+{
+    "name": "zat-server-webpack-plugin",
+    "version": "0.1.0",
+    "description": "Webpack plugin for Zendesk app development with ZAT server",
+    "keywords": [
+        "zendesk",
+        "zat",
+        "server",
+        "webpack",
+        "plugin"
+    ],
+    "homepage": "https://github.com/malj/zat-server-webpack-plugin#readme",
+    "bugs": {
+        "url": "https://github.com/malj/zat-server-webpack-plugin/issues"
+    },
+    "license": "ISC",
+    "author": {
+        "name": "Luka Maljic",
+        "email": "luka@maljic.com",
+        "url": "http://github.com/malj"
+    },
+    "funding": "https://paypal.me/lukamaljic",
+    "main": "dist/zat-server-webpack-plugin",
+    "repository": "github:malj/zat-server-webpack-plugin",
+    "scripts": {
+        "start": "tsc",
+        "test": "jest"
+    },
+    "jest": {
+        "preset": "ts-jest"
+    },
+    "prettier": {
+        "semi": false
+    },
+    "devDependencies": {
+        "@types/jest": "^26.0.24",
+        "@types/node": "^16.4.1",
+        "@types/webpack": "^5.28.0",
+        "jest": "^27.0.6",
+        "ts-jest": "^27.0.4",
+        "typescript": "^4.3.5"
+    },
+    "engines": {
+        "node": ">=12.0"
+    }
+}
