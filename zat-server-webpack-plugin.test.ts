@@ -18,8 +18,6 @@ const mockCompiler = {
 const timeout = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms))
 
-const processExit = jest.spyOn(process, "exit").mockImplementation()
-
 jest.spyOn(console, "log").mockImplementation()
 
 test("Options format", () => {
@@ -85,26 +83,26 @@ test("Server start", async () => {
         expect(plugin.server).toBeDefined()
 
         // Cleanup
-        await plugin.exit()
+        plugin.stop()
     } finally {
         await fs.rm(testdir, { recursive: true })
     }
 })
 
-test("Mutiple servers exit", async () => {
+test("Mutiple servers start", async () => {
     await fs.mkdir(testdir)
     try {
         const manifest = path.join(testdir, "manifest.json")
         await fs.writeFile(manifest, "{}")
-        const plugins = [5000, 6000, 7000].map((port) => {
-            const server = new ZATServerPlugin({ path: testdir, port })
-            server.apply(mockCompiler)
-            return server
+        const ports = [5000, 6000, 7000]
+        ports.forEach((port) => {
+            const plugin = new ZATServerPlugin({ path: testdir, port })
+            jest.spyOn(plugin, "watchFile").mockImplementation()
+            expect(plugin.server).toBeUndefined()
+            plugin.apply(mockCompiler)
+            expect(plugin.server).toBeDefined()
+            plugin.stop()
         })
-        await timeout(1000)
-        processExit.mockClear()
-        await Promise.all(plugins.map((plugin) => plugin.exit()))
-        expect(processExit).toHaveBeenCalledTimes(1)
     } finally {
         await fs.rm(testdir, { recursive: true })
     }
@@ -129,13 +127,13 @@ test("Manifest watcher", async () => {
         expect(start).toHaveBeenCalled()
 
         // Rename
-        const exit = jest.spyOn(plugin, "exit").mockImplementation()
+        const stop = jest.spyOn(plugin, "stop").mockImplementation()
         await fs.rename(manifest, manifest + "1")
-        expect(exit).toHaveBeenCalled()
+        expect(stop).toHaveBeenCalled()
 
         // Cleanup
-        exit.mockRestore()
-        await plugin.exit()
+        stop.mockRestore()
+        plugin.stop()
     } finally {
         await fs.rm(testdir, { recursive: true })
     }
@@ -162,13 +160,13 @@ test("Config watcher", async () => {
         expect(start).toHaveBeenCalled()
 
         // Rename
-        const exit = jest.spyOn(plugin, "exit").mockImplementation()
+        const stop = jest.spyOn(plugin, "stop").mockImplementation()
         await fs.rename(config, config + "1")
-        expect(exit).toHaveBeenCalled()
+        expect(stop).toHaveBeenCalled()
 
         // Cleanup
-        exit.mockRestore()
-        await plugin.exit()
+        stop.mockRestore()
+        plugin.stop()
     } finally {
         await fs.rm(testdir, { recursive: true })
     }

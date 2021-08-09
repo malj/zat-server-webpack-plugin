@@ -19,6 +19,7 @@ class OptionError extends TypeError {
 class ZATServerWebpackPlugin {
     manifest = join(process.cwd(), "manifest.json")
     config = join(process.cwd(), "settings.yml")
+    server?: ChildProcess
     watchers: Record<string, FSWatcher> = {}
     args: string[]
 
@@ -69,58 +70,21 @@ class ZATServerWebpackPlugin {
             this.config = abspath(options.config)
         }
 
-        // Wait for all child processes to end before exiting with CTRL+C
-        process.on("SIGINT", () => {
-            this.exit()
+        process.on("exit", () => {
+            this.stop()
         })
     }
 
-    static servers = new Map<ZATServerWebpackPlugin, ChildProcess>()
-
-    get server() {
-        return ZATServerWebpackPlugin.servers.get(this)
+    start() {
+        this.server = spawn("zat", ["server", ...this.args])
+        this.server.stdout?.pipe(process.stdout)
+        this.server.stderr?.pipe(process.stderr)
     }
 
-    set server(value) {
-        if (value) {
-            ZATServerWebpackPlugin.servers.set(this, value)
-        } else {
-            ZATServerWebpackPlugin.servers.delete(this)
-        }
-    }
-
-    get isReadyForExit() {
-        return ZATServerWebpackPlugin.servers.size === 0
-    }
-
-    async start() {
-        await this.stop()
-        this.server = spawn("zat", ["server", ...this.args], {
-            stdio: "inherit",
-        })
-    }
-
-    async stop() {
-        await new Promise<void>((resolve) => {
-            if (this.server) {
-                this.server.on("exit", () => {
-                    this.server = undefined
-                    resolve()
-                })
-                this.server.kill()
-            } else {
-                resolve()
-            }
-        })
-    }
-
-    async exit() {
+    stop() {
+        this.server?.kill()
         for (const filepath in this.watchers) {
             this.watchers[filepath].close()
-        }
-        await this.stop()
-        if (this.isReadyForExit) {
-            process.exit()
         }
     }
 
@@ -151,6 +115,7 @@ class ZATServerWebpackPlugin {
                         readFile(filepath, (error, newBuffer) => {
                             if (!error && newBuffer?.compare(buffer)) {
                                 buffer = newBuffer
+                                this.server?.kill()
                                 this.start()
                             }
                         })
@@ -159,7 +124,7 @@ class ZATServerWebpackPlugin {
                         console.log(
                             "ZAT server dependency file path changed, Webpack restart required."
                         )
-                        this.exit()
+                        this.stop()
                         break
                 }
             })
