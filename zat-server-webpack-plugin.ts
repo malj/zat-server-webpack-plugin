@@ -76,15 +76,28 @@ class ZATServerWebpackPlugin {
     }
 
     start() {
-        this.server = spawn("zat", ["server", ...this.args])
-        this.server.stdout?.pipe(process.stdout)
-        this.server.stderr?.pipe(process.stderr)
+        this.server = spawn("zat", ["server", ...this.args], {
+            stdio: "inherit",
+        })
+    }
+
+    restart() {
+        if (this.server) {
+            this.server.on("exit", () => {
+                this.start()
+            })
+            this.server.kill()
+        } else {
+            this.start()
+        }
     }
 
     stop() {
         this.server?.kill()
+        this.server = undefined
         for (const filepath in this.watchers) {
             this.watchers[filepath].close()
+            delete this.watchers[filepath]
         }
     }
 
@@ -108,15 +121,13 @@ class ZATServerWebpackPlugin {
                 }
             }
 
-            this.watchers[filepath]?.close()
             this.watchers[filepath] = watch(filepath, (eventType) => {
                 switch (eventType) {
                     case "change":
                         readFile(filepath, (error, newBuffer) => {
                             if (!error && newBuffer?.compare(buffer)) {
                                 buffer = newBuffer
-                                this.server?.kill()
-                                this.start()
+                                this.restart()
                             }
                         })
                         break
