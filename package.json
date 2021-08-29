@@ -1,6 +1,6 @@
 {
     "name": "zat-server-webpack-plugin",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": "Webpack plugin for Zendesk app development with ZAT server",
     "keywords": [
         "zendesk",

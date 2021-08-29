@@ -76,9 +76,9 @@ class ZATServerWebpackPlugin {
     }
 
     start() {
-        this.server = spawn("zat", ["server", ...this.args], {
-            stdio: "inherit",
-        })
+        this.server = spawn("zat", ["server", ...this.args])
+        this.server.stdout?.pipe(process.stdout)
+        this.server.stderr?.pipe(process.stderr)
     }
 
     restart() {
