@@ -79,10 +79,12 @@ class ZATServerWebpackPlugin {
         this.server = spawn("zat", ["server", ...this.args])
         this.server.stdout?.pipe(process.stdout)
         this.server.stderr?.pipe(process.stderr)
+        this.server.on("exit", process.exit)
     }
 
     restart() {
         if (this.server) {
+            this.server.off("exit", process.exit)
             this.server.on("exit", () => {
                 this.start()
             })

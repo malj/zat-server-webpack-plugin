@@ -19,6 +19,7 @@ const timeout = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms))
 
 jest.spyOn(console, "log").mockImplementation()
+jest.spyOn(process, "exit").mockImplementation()
 
 test("Options format", () => {
     const plugin = new ZATServerPlugin({
